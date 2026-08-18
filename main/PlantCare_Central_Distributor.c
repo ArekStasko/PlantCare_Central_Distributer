@@ -22,5 +22,6 @@ void app_main(void)
     if(isWifiDataExist)
     {
       connect_to_wifi();
+
     }
 }

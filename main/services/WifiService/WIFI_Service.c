@@ -16,16 +16,6 @@
 static bool wifi_started = false;
 char *WIFI_LOG_TAG = "Plantcare Central Distributor - wifi service";
 
-void enter_deep_sleep()
-{
-	esp_wifi_disconnect();
-	esp_wifi_stop();
-	esp_wifi_deinit();
-
-	esp_sleep_enable_timer_wakeup(3600000000ULL);
-	esp_deep_sleep_start();
-}
-
 void save_error_code_to_nvs(esp_err_t error_code)
 {
   	nvs_handle_t nvs_handle;
@@ -39,9 +29,46 @@ void save_error_code_to_nvs(esp_err_t error_code)
     nvs_close(nvs_handle);
 }
 
-void server_call(void)
+void perform_water_supply(void)
 {
+	char *savedId = getModuleId();
+    char *serverAddress = getServerAddress();
 
+    if (!savedId || !serverAddress) return;
+
+    char full_url[128];
+    const int serverPort = 8080;
+    snprintf(full_url, sizeof(full_url), "http://%s:%d/api/%s/water-supply/status", serverAddress, serverPort, savedId);
+
+    esp_http_client_config_t config = {
+        .url = full_url,
+        .method = HTTP_METHOD_GET,
+        .timeout_ms = 5000,
+    };
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+
+    esp_http_client_set_header(client, "Content-Type", "application/json");
+
+    const char *auth_token = "deb1197807e28b36bc6a7e5b9d6ad13c9fdc92e407364a5615d31518705057a5";
+
+    char auth_header[128];
+    snprintf(auth_header, sizeof(auth_header), "Bearer %s", auth_token);
+    esp_http_client_set_header(client, "Authorization", auth_header);
+
+    esp_err_t err = esp_http_client_perform(client);
+
+    if (err != ESP_OK)
+    {
+       save_error_code_to_nvs(err);
+    }
+    esp_http_client_cleanup(client);
+}
+
+void get_water_supply_status(void)
+{
+	printf("GET WATER SUPPLY STATUS\n");
+    perform_water_supply();
+    vTaskDelete(NULL);
 }
 
 void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
@@ -61,7 +88,7 @@ void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, in
     case IP_EVENT_STA_GOT_IP:
         {
       		vTaskDelay(pdMS_TO_TICKS(500));
-			xTaskCreate(server_call, "server_call", 8192, NULL, 5, NULL);
+			xTaskCreate(get_water_supply_status, "get_water_supply_status", 8192, NULL, 5, NULL);
     		break;
     	}
     default:

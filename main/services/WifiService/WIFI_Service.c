@@ -38,7 +38,7 @@ void perform_water_supply(void)
 
     char full_url[128];
     const int serverPort = 8080;
-    snprintf(full_url, sizeof(full_url), "http://%s:%d/api/%s/water-supply/status", serverAddress, serverPort, savedId);
+    snprintf(full_url, sizeof(full_url), "http://%s:%d/api/distributor/%s/water-supply/status", serverAddress, serverPort, savedId);
 
     esp_http_client_config_t config = {
         .url = full_url,
@@ -61,6 +61,18 @@ void perform_water_supply(void)
     {
        save_error_code_to_nvs(err);
     }
+
+    int status_code = esp_http_client_get_status_code(client);
+
+    if (status_code == 200)
+    {
+		int response_length = esp_http_client_get_content_length(client);
+        char response_body[response_length + 1];
+        int read_length = esp_http_client_read(client, response_body, response_length);
+        response_body[read_length] = '\0';
+        printf("%s\n", response_body);
+    }
+
     esp_http_client_cleanup(client);
 }
 

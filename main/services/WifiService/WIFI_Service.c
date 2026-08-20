@@ -16,6 +16,41 @@
 static bool wifi_started = false;
 char *WIFI_LOG_TAG = "Plantcare Central Distributor - wifi service";
 
+static int water_supply_result = -1;
+
+static esp_err_t http_event_handler(esp_http_client_event_t *evt)
+{
+    switch (evt->event_id)
+    {
+        case HTTP_EVENT_ON_DATA:
+        {
+            if (evt->data_len > 0)
+            {
+                char buffer[32];
+
+                int len = evt->data_len;
+
+                if (len >= sizeof(buffer))
+                {
+                    len = sizeof(buffer) - 1;
+                }
+
+                memcpy(buffer, evt->data, len);
+                buffer[len] = '\0';
+
+                water_supply_result = atoi(buffer);
+            }
+
+            break;
+        }
+
+        default:
+            break;
+    }
+
+    return ESP_OK;
+}
+
 void save_error_code_to_nvs(esp_err_t error_code)
 {
   	nvs_handle_t nvs_handle;
@@ -44,6 +79,7 @@ void perform_water_supply(void)
         .url = full_url,
         .method = HTTP_METHOD_GET,
         .timeout_ms = 5000,
+        .event_handler = http_event_handler,
     };
     esp_http_client_handle_t client = esp_http_client_init(&config);
 
@@ -55,22 +91,22 @@ void perform_water_supply(void)
     snprintf(auth_header, sizeof(auth_header), "Bearer %s", auth_token);
     esp_http_client_set_header(client, "Authorization", auth_header);
 
+    water_supply_result = -1;
+
     esp_err_t err = esp_http_client_perform(client);
 
     if (err != ESP_OK)
     {
-       save_error_code_to_nvs(err);
+        save_error_code_to_nvs(err);
+        esp_http_client_cleanup(client);
+        return;
     }
 
     int status_code = esp_http_client_get_status_code(client);
 
     if (status_code == 200)
     {
-		int response_length = esp_http_client_get_content_length(client);
-        char response_body[response_length + 1];
-        int read_length = esp_http_client_read(client, response_body, response_length);
-        response_body[read_length] = '\0';
-        printf("%s\n", response_body);
+        printf("Water supply object ID: %d\n", water_supply_result);
     }
 
     esp_http_client_cleanup(client);

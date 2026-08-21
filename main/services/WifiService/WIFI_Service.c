@@ -51,6 +51,16 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt)
     return ESP_OK;
 }
 
+void enter_deep_sleep()
+{
+	esp_wifi_disconnect();
+	esp_wifi_stop();
+	esp_wifi_deinit();
+
+	esp_sleep_enable_timer_wakeup(3600000000ULL);
+	esp_deep_sleep_start();
+}
+
 void save_error_code_to_nvs(esp_err_t error_code)
 {
   	nvs_handle_t nvs_handle;
@@ -64,7 +74,19 @@ void save_error_code_to_nvs(esp_err_t error_code)
     nvs_close(nvs_handle);
 }
 
-void perform_water_supply(void)
+void perform_water_supply(int plantId)
+{
+	if(plantId == -1)
+  	{
+          enter_deep_sleep();
+          return;
+  	}
+
+    //run pump for specific plant id
+    //remove status
+}
+
+void get_water_supply_status(void)
 {
 	char *savedId = getModuleId();
     char *serverAddress = getServerAddress();
@@ -103,19 +125,17 @@ void perform_water_supply(void)
     }
 
     int status_code = esp_http_client_get_status_code(client);
+    esp_http_client_cleanup(client);
 
     if (status_code == 200)
     {
-        printf("Water supply object ID: %d\n", water_supply_result);
+        perform_water_supply(water_supply_result);
     }
-
-    esp_http_client_cleanup(client);
 }
 
-void get_water_supply_status(void)
+void run_get_water_supply_status(void)
 {
-	printf("GET WATER SUPPLY STATUS\n");
-    perform_water_supply();
+    get_water_supply_status();
     vTaskDelete(NULL);
 }
 
@@ -136,7 +156,7 @@ void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, in
     case IP_EVENT_STA_GOT_IP:
         {
       		vTaskDelay(pdMS_TO_TICKS(500));
-			xTaskCreate(get_water_supply_status, "get_water_supply_status", 8192, NULL, 5, NULL);
+			xTaskCreate(run_get_water_supply_status, "run_get_water_supply_status", 8192, NULL, 5, NULL);
     		break;
     	}
     default:

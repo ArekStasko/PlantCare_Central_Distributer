@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "PlantCare_Central_Distributor",
-    "project_version":    "60e2824-dirty",
+    "project_version":    "3f40395-dirty",
     "project_path":       "/home/arekstasko/sources/repos/PlantCare_Central_Distributer",
     "idf_path":           "/home/arekstasko/sources/Espressif-IDE/esp-idf-v5.3.1",
     "build_dir":          "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/build",
@@ -1180,8 +1180,8 @@
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/build/esp-idf/main/libmain.a",
-            "sources": [ "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/main/PlantCare_Central_Distributor.c", "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/main/services/bluetoothService/Bluetooth_Service.c", "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/main/services/NvsService/NVS_Service.c", "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/main/services/WifiService/WIFI_Service.c", "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/main/services/adcService/Adc_Service.c" ],
-            "include_dirs": [ ".", "./services/bluetoothService", "./services/NvsService", "./services/WifiService", "./services/adcService" ]
+            "sources": [ "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/main/PlantCare_Central_Distributor.c", "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/main/services/bluetoothService/Bluetooth_Service.c", "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/main/services/NvsService/NVS_Service.c", "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/main/services/WifiService/WIFI_Service.c" ],
+            "include_dirs": [ ".", "./services/bluetoothService", "./services/NvsService", "./services/WifiService" ]
         },
         "mbedtls": {
             "alias": "idf::mbedtls",
@@ -2791,7 +2791,7 @@
             "priv_reqs": [],
             "managed_reqs": [],
             "managed_priv_reqs": [],
-            "include_dirs": [ ".", "./services/bluetoothService", "./services/NvsService", "./services/WifiService", "./services/adcService" ]
+            "include_dirs": [ ".", "./services/bluetoothService", "./services/NvsService", "./services/WifiService" ]
         }
     },
     "debug_prefix_map_gdbinit": ""

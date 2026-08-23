@@ -7,6 +7,7 @@
 #include "WIFI_Service.h"
 #include "esp_log.h"
 #include "esp_event.h"
+#include "GPIO_Service.h"
 
 void app_main(void)
 {
@@ -19,7 +20,7 @@ void app_main(void)
     }
     if(isWifiDataExist)
     {
+      WaterPump_Init();
       connect_to_wifi();
-
     }
 }

@@ -12,6 +12,7 @@
 #include "esp_http_client.h"
 #include "esp_sleep.h"
 #include "sdkconfig.h"
+#include "GPIO_Service.h"
 
 static bool wifi_started = false;
 char *WIFI_LOG_TAG = "Plantcare Central Distributor - wifi service";
@@ -83,6 +84,10 @@ void perform_water_supply(int plantId)
   	}
 
     //run pump for specific plant id
+    Run_WaterPump();
+    vTaskDelay(pdMS_TO_TICKS(10000));
+    Stop_WaterPump();
+
     //remove status
 }
 

@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "PlantCare_Central_Distributor",
-    "project_version":    "3f40395-dirty",
+    "project_version":    "d1d7700-dirty",
     "project_path":       "/home/arekstasko/sources/repos/PlantCare_Central_Distributer",
     "idf_path":           "/home/arekstasko/sources/Espressif-IDE/esp-idf-v5.3.1",
     "build_dir":          "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/build",
@@ -1175,13 +1175,13 @@
             "dir": "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/main",
             "type": "LIBRARY",
             "lib": "__idf_main",
-            "reqs": [ "bt", "nvs_flash", "driver", "esp_wifi", "esp_http_client", "esp_adc" ],
+            "reqs": [ "bt", "nvs_flash", "driver", "esp_wifi", "esp_http_client", "esp_driver_gpio" ],
             "priv_reqs": [],
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/build/esp-idf/main/libmain.a",
-            "sources": [ "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/main/PlantCare_Central_Distributor.c", "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/main/services/bluetoothService/Bluetooth_Service.c", "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/main/services/NvsService/NVS_Service.c", "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/main/services/WifiService/WIFI_Service.c" ],
-            "include_dirs": [ ".", "./services/bluetoothService", "./services/NvsService", "./services/WifiService" ]
+            "sources": [ "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/main/PlantCare_Central_Distributor.c", "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/main/services/bluetoothService/Bluetooth_Service.c", "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/main/services/NvsService/NVS_Service.c", "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/main/services/WifiService/WIFI_Service.c", "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/main/services/GpioService/GPIO_Service.c" ],
+            "include_dirs": [ ".", "./services/bluetoothService", "./services/NvsService", "./services/WifiService", "./services/GpioService" ]
         },
         "mbedtls": {
             "alias": "idf::mbedtls",
@@ -2787,11 +2787,11 @@
             "prefix": "idf",
             "dir": "/home/arekstasko/sources/repos/PlantCare_Central_Distributer/main",
             "lib": "__idf_main",
-            "reqs": [ "bt", "nvs_flash", "driver", "esp_wifi", "esp_http_client", "esp_adc" ],
+            "reqs": [ "bt", "nvs_flash", "driver", "esp_wifi", "esp_http_client", "esp_driver_gpio" ],
             "priv_reqs": [],
             "managed_reqs": [],
             "managed_priv_reqs": [],
-            "include_dirs": [ ".", "./services/bluetoothService", "./services/NvsService", "./services/WifiService" ]
+            "include_dirs": [ ".", "./services/bluetoothService", "./services/NvsService", "./services/WifiService", "./services/GpioService" ]
         }
     },
     "debug_prefix_map_gdbinit": ""

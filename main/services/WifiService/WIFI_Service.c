@@ -12,7 +12,7 @@
 #include "esp_http_client.h"
 #include "esp_sleep.h"
 #include "sdkconfig.h"
-#include "GPIO_Service.h"
+#include "Plant_Service.h"
 
 static bool wifi_started = false;
 char *WIFI_LOG_TAG = "Plantcare Central Distributor - wifi service";
@@ -75,20 +75,9 @@ void save_error_code_to_nvs(esp_err_t error_code)
     nvs_close(nvs_handle);
 }
 
-void perform_water_supply(int plantId)
+int remove_water_supply(void)
 {
-	if(plantId == -1)
-  	{
-          enter_deep_sleep();
-          return;
-  	}
-
-    //run pump for specific plant id
-    Run_WaterPump();
-    vTaskDelay(pdMS_TO_TICKS(10000));
-    Stop_WaterPump();
-
-    //remove status
+  return 0;
 }
 
 void get_water_supply_status(void)
@@ -132,9 +121,18 @@ void get_water_supply_status(void)
     int status_code = esp_http_client_get_status_code(client);
     esp_http_client_cleanup(client);
 
+    int processing_result = 0;
     if (status_code == 200)
     {
-        perform_water_supply(water_supply_result);
+        processing_result = perform_water_supply(water_supply_result);
+    }
+
+    if(processing_result == -1) enter_deep_sleep();
+
+    int removal_result = 0;
+    if(water_supply_result == 1)
+    {
+      removal_result = remove_water_supply();
     }
 }
 

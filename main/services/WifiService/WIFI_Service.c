@@ -75,21 +75,58 @@ void save_error_code_to_nvs(esp_err_t error_code)
     nvs_close(nvs_handle);
 }
 
-int remove_water_supply(void)
+int remove_water_supply(char* moduleId, int plantId)
 {
-  return 0;
-}
-
-void get_water_supply_status(void)
-{
-	char *savedId = getModuleId();
     char *serverAddress = getServerAddress();
 
-    if (!savedId || !serverAddress) return;
+    if (!moduleId || !serverAddress) return -1;
 
     char full_url[128];
     const int serverPort = 8080;
-    snprintf(full_url, sizeof(full_url), "http://%s:%d/api/distributor/%s/water-supply/status", serverAddress, serverPort, savedId);
+    snprintf(full_url, sizeof(full_url), "http://%s:%d/api/distributor/%s/%d/water-supply", serverAddress, serverPort, moduleId, plantId);
+
+    esp_http_client_config_t config = {
+        .url = full_url,
+        .method = HTTP_METHOD_DELETE,
+        .timeout_ms = 5000,
+        .event_handler = http_event_handler,
+    };
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+
+    esp_http_client_set_header(client, "Content-Type", "application/json");
+
+    const char *auth_token = "deb1197807e28b36bc6a7e5b9d6ad13c9fdc92e407364a5615d31518705057a5";
+
+    char auth_header[128];
+    snprintf(auth_header, sizeof(auth_header), "Bearer %s", auth_token);
+    esp_http_client_set_header(client, "Authorization", auth_header);
+
+    water_supply_result = -1;
+
+    esp_err_t err = esp_http_client_perform(client);
+
+    if (err != ESP_OK)
+    {
+        save_error_code_to_nvs(err);
+        esp_http_client_cleanup(client);
+        return -1;
+    }
+
+    int status_code = esp_http_client_get_status_code(client);
+    esp_http_client_cleanup(client);
+
+	return status_code;
+}
+
+int get_water_supply_status(char* moduleId)
+{
+    char *serverAddress = getServerAddress();
+
+    if (!moduleId || !serverAddress) return -1;
+
+    char full_url[128];
+    const int serverPort = 8080;
+    snprintf(full_url, sizeof(full_url), "http://%s:%d/api/distributor/%s/water-supply/status", serverAddress, serverPort, moduleId);
 
     esp_http_client_config_t config = {
         .url = full_url,
@@ -115,31 +152,30 @@ void get_water_supply_status(void)
     {
         save_error_code_to_nvs(err);
         esp_http_client_cleanup(client);
-        return;
+        return -1;
     }
 
     int status_code = esp_http_client_get_status_code(client);
+    if(status_code != 200) enter_deep_sleep();
+
     esp_http_client_cleanup(client);
 
-    int processing_result = 0;
-    if (status_code == 200)
-    {
-        processing_result = perform_water_supply(water_supply_result);
-    }
+	return water_supply_result;
+}
 
+void run_get_water_supply_status(void)
+{
+  	char *moduleId = getModuleId();
+    int plantId = get_water_supply_status(moduleId);
+
+    int processing_result = perform_water_supply(plantId);
     if(processing_result == -1) enter_deep_sleep();
 
     int removal_result = 0;
     if(water_supply_result == 1)
     {
-      removal_result = remove_water_supply();
+      removal_result = remove_water_supply(moduleId, plantId);
     }
-}
-
-void run_get_water_supply_status(void)
-{
-    get_water_supply_status();
-    vTaskDelete(NULL);
 }
 
 void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)

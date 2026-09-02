@@ -16,3 +16,8 @@ int perform_water_supply(int plantId)
 
     return 1;
 }
+
+void save_executed_water_supply(int plantId)
+{
+
+}

@@ -58,7 +58,7 @@ void enter_deep_sleep()
 	esp_wifi_stop();
 	esp_wifi_deinit();
 
-	esp_sleep_enable_timer_wakeup(3600000000ULL);
+	esp_sleep_enable_timer_wakeup(600000000ULL);
 	esp_deep_sleep_start();
 }
 

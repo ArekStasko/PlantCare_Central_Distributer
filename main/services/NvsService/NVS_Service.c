@@ -5,6 +5,42 @@
 #include "esp_log.h"
 #include "esp_event.h"
 
+void savePlantId(char* plantId)
+{
+    nvs_handle_t nvs_handle;
+    esp_err_t err = nvs_open("storage", NVS_READWRITE, &nvs_handle);
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(BLE_LOG_TAG, "Error (%s) opening NVS handle!", esp_err_to_name(err));
+        return BLE_ATT_ERR_UNLIKELY;
+    }
+
+    nvs_set_str(nvs_handle, "plantId", plantId);
+}
+
+char* getPlantId()
+{
+    static char plantId[128];
+    size_t required_size = 0;
+
+    nvs_handle_t nvs_handle;
+    esp_err_t ret = nvs_open("storage", NVS_READONLY, &nvs_handle);
+
+    if (ret != ESP_OK) {
+        ESP_LOGE("NVS", "Failed to open NVS handle! Error: %d", ret);
+        return NULL;
+    }
+    ret = nvs_get_str(nvs_handle, "plantId", wifiName, &required_size);
+    if (ret != ESP_OK) {
+        ESP_LOGE("NVS", "Failed to read plant id");
+        nvs_close(nvs_handle);
+        return NULL;
+    }
+
+    nvs_close(nvs_handle);
+    return plantId;
+}
+
 char* getWifiName(void)
 {
   	static char wifiName[128];

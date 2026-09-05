@@ -163,19 +163,31 @@ int get_water_supply_status(char* moduleId)
 	return water_supply_result;
 }
 
+void run_remove_water_supply(char* moduleId, int plantId)
+{
+    int removal_result = 0;
+    if(water_supply_result == 1)
+    {
+        removal_result = remove_water_supply(moduleId, plantId);
+        process_executed_water_supply(plantId, removal_result);
+    }
+}
+
 void run_get_water_supply_status(void)
 {
   	char *moduleId = getModuleId();
     int plantId = get_water_supply_status(moduleId);
+    bool awaiting_water_result = verify_awaiting_water_supply(plantId);
+
+    if(awaiting_water_result)
+    {
+        run_remove_water_supply(moduleId, plantId);
+        return;
+    }
 
     int processing_result = perform_water_supply(plantId);
     if(processing_result == -1) enter_deep_sleep();
-
-    int removal_result = 0;
-    if(water_supply_result == 1)
-    {
-      removal_result = remove_water_supply(moduleId, plantId);
-    }
+    run_remove_water_supply(moduleId, plantId);
 }
 
 void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)

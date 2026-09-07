@@ -17,21 +17,21 @@ int perform_water_supply(int plantId)
     return 1;
 }
 
-void process_executed_water_supply(int plantId, int statusCode)
+void process_executed_water_supply(int status_id, int status_code)
 {
-    if(statusCode == 200)
+    if(status_code == 200)
     {
         savePlantId("-1");
         return;
     }
 
-    savePlantId((char)(plantId));
+    savePlantId((char)(status_id));
 }
 
-bool verify_awaiting_water_supply(int plantId)
+bool verify_awaiting_water_supply(int status_id)
 {
-  char saved_plant_id = getPlantId();
-  if(saved_plant_id == -1) return;
+  char saved_status_id = getPlantId();
+  if(saved_status_id == -1) return;
 
-  return plantId == saved_plant_id;
+  return status_id == saved_status_id;
 }

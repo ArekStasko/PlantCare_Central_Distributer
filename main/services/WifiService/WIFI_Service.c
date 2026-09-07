@@ -176,6 +176,8 @@ void run_remove_water_supply(char* moduleId, int plantId)
 void run_get_water_supply_status(void)
 {
   	char *moduleId = getModuleId();
+
+    // TODO: CHANGE PLANT ID TO STATUS ID
     int plantId = get_water_supply_status(moduleId);
     bool awaiting_water_result = verify_awaiting_water_supply(plantId);
 

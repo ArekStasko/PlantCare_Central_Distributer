@@ -144,6 +144,7 @@ int get_water_supply_status(char* moduleId)
     snprintf(auth_header, sizeof(auth_header), "Bearer %s", auth_token);
     esp_http_client_set_header(client, "Authorization", auth_header);
 
+    //TODO Change response type to water supply id and plant id object
     water_supply_result = -1;
 
     esp_err_t err = esp_http_client_perform(client);
@@ -177,7 +178,6 @@ void run_get_water_supply_status(void)
 {
   	char *moduleId = getModuleId();
 
-    // TODO: CHANGE PLANT ID TO STATUS ID
     int plantId = get_water_supply_status(moduleId);
     bool awaiting_water_result = verify_awaiting_water_supply(plantId);
 

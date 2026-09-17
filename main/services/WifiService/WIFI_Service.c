@@ -14,6 +14,11 @@
 #include "sdkconfig.h"
 #include "Plant_Service.h"
 
+typedef struct {
+    int id;
+    int plant_id;
+} water_supply_result_t;
+
 static bool wifi_started = false;
 char *WIFI_LOG_TAG = "Plantcare Central Distributor - wifi service";
 

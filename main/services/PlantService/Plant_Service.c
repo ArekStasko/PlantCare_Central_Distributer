@@ -4,7 +4,7 @@
 #include "freertos/event_groups.h"
 #include "Plant_Service.h"
 #include "GPIO_Service.h"
-
+#include "NVS_Service.h"
 
 int perform_water_supply(int plantId)
 {
@@ -22,16 +22,20 @@ void process_executed_water_supply(int status_id, int status_code)
     if(status_code == 200)
     {
         savePlantId("-1");
-        return;
     }
-
-    savePlantId((char)(status_id));
+    else
+    {
+        savePlantId((char)(status_id));
+    }
 }
 
 bool verify_awaiting_water_supply(int status_id)
 {
   char saved_status_id = getPlantId();
-  if(saved_status_id == -1) return;
+  if(saved_status_id == -1)
+  {
+    return false;
+  }
 
   return status_id == saved_status_id;
 }

@@ -13,6 +13,7 @@
 #include "esp_sleep.h"
 #include "sdkconfig.h"
 #include "Plant_Service.h"
+#include "cJSON.h"
 
 typedef struct {
     int id;
@@ -21,6 +22,10 @@ typedef struct {
 
 static bool wifi_started = false;
 char *WIFI_LOG_TAG = "Plantcare Central Distributor - wifi service";
+#define WATER_SUPPLY_RESPONSE_MAX_SIZE 128
+
+static char response_buffer[WATER_SUPPLY_RESPONSE_MAX_SIZE];
+static int response_length = 0;
 
 static int water_supply_result = -1;
 
@@ -32,19 +37,28 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt)
         {
             if (evt->data_len > 0)
             {
-                char buffer[32];
+                int remaining = WATER_SUPPLY_RESPONSE_MAX_SIZE - response_length - 1;
 
-                int len = evt->data_len;
-
-                if (len >= sizeof(buffer))
+                if (remaining <= 0)
                 {
-                    len = sizeof(buffer) - 1;
+                    break;
                 }
 
-                memcpy(buffer, evt->data, len);
-                buffer[len] = '\0';
+                int copy_len = evt->data_len;
 
-                water_supply_result = atoi(buffer);
+                if (copy_len > remaining)
+                {
+                    copy_len = remaining;
+                }
+
+                memcpy(
+                    response_buffer + response_length,
+                    evt->data,
+                    copy_len
+                );
+
+                response_length += copy_len;
+                response_buffer[response_length] = '\0';
             }
 
             break;
@@ -123,11 +137,17 @@ int remove_water_supply(char* moduleId, int plantId)
 	return status_code;
 }
 
-int get_water_supply_status(char* moduleId)
+water_supply_result_t get_water_supply_status(char* moduleId)
 {
     char *serverAddress = getServerAddress();
 
-    if (!moduleId || !serverAddress) return -1;
+    if (!moduleId || !serverAddress)
+    {
+      return (water_supply_result_t){
+            .id = -1,
+            .plant_id = -1
+        };
+    }
 
     char full_url[128];
     const int serverPort = 8080;
@@ -149,24 +169,51 @@ int get_water_supply_status(char* moduleId)
     snprintf(auth_header, sizeof(auth_header), "Bearer %s", auth_token);
     esp_http_client_set_header(client, "Authorization", auth_header);
 
-    //TODO Change response type to water supply id and plant id object
     water_supply_result = -1;
 
     esp_err_t err = esp_http_client_perform(client);
+    cJSON *json = cJSON_Parse(response_buffer);
 
-    if (err != ESP_OK)
+    if (!json)
     {
-        save_error_code_to_nvs(err);
         esp_http_client_cleanup(client);
-        return -1;
+        return (water_supply_result_t){
+            .id = -1,
+            .plant_id = -1
+        };
+    }
+
+    cJSON *id = cJSON_GetObjectItemCaseSensitive(json, "id");
+    cJSON *plant_id = cJSON_GetObjectItemCaseSensitive(json, "plantId");
+
+    if (!cJSON_IsNumber(id) || !cJSON_IsNumber(plant_id))
+    {
+        cJSON_Delete(json);
+        esp_http_client_cleanup(client);
+
+        return (water_supply_result_t){
+            .id = -1,
+            .plant_id = -1
+        };
     }
 
     int status_code = esp_http_client_get_status_code(client);
-    if(status_code != 200) enter_deep_sleep();
+    if(status_code != 200)
+    {
+      esp_http_client_cleanup(client);
+      enter_deep_sleep();
+    }
 
     esp_http_client_cleanup(client);
 
-	return water_supply_result;
+    water_supply_result_t result = {
+        .id = id->valueint,
+        .plant_id = plant_id->valueint
+    };
+
+    cJSON_Delete(json);
+
+    return result;
 }
 
 void run_remove_water_supply(char* moduleId, int plantId)
@@ -181,20 +228,20 @@ void run_remove_water_supply(char* moduleId, int plantId)
 
 void run_get_water_supply_status(void)
 {
-  	char *moduleId = getModuleId();
+    char *moduleId = getModuleId();
 
-    int plantId = get_water_supply_status(moduleId);
-    bool awaiting_water_result = verify_awaiting_water_supply(plantId);
+    water_supply_result_t result = get_water_supply_status(moduleId);
+    bool awaiting_water_result = verify_awaiting_water_supply(result.id);
 
     if(awaiting_water_result)
     {
-        run_remove_water_supply(moduleId, plantId);
+        run_remove_water_supply(moduleId, result.plant_id);
         return;
     }
 
-    int processing_result = perform_water_supply(plantId);
+    int processing_result = perform_water_supply(result.plant_id);
     if(processing_result == -1) enter_deep_sleep();
-    run_remove_water_supply(moduleId, plantId);
+    run_remove_water_supply(moduleId, result.plant_id);
 }
 
 void wifi_event_handler(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)

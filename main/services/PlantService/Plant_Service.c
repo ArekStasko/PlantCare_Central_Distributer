@@ -31,7 +31,7 @@ void process_executed_water_supply(int status_id, int status_code)
 
 bool verify_awaiting_water_supply(int status_id)
 {
-  char saved_status_id = getPlantId();
+  char saved_status_id = getStatusId();
   if(saved_status_id == -1)
   {
     return false;

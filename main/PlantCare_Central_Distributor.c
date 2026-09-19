@@ -12,7 +12,6 @@
 void app_main(void)
 {
     nvs_flash_init();
-
     bool isWifiDataExist = checkIfWiFiDataExists();
     if (!isWifiDataExist)
     {

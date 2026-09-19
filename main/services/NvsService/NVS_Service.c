@@ -41,7 +41,7 @@ char* getStatusId()
     if (ret != ESP_OK) {
         ESP_LOGE("NVS", "Failed to read status id");
         nvs_close(nvs_handle);
-        return NULL;
+        return "-1";
     }
 
     nvs_close(nvs_handle);
@@ -60,11 +60,12 @@ char* getPlantId()
         ESP_LOGE("NVS", "Failed to open NVS handle! Error: %d", ret);
         return NULL;
     }
+
     ret = nvs_get_str(nvs_handle, "plantId", plant_id, &required_size);
     if (ret != ESP_OK) {
         ESP_LOGE("NVS", "Failed to read plant id");
         nvs_close(nvs_handle);
-        return NULL;
+        return "-1";
     }
 
     nvs_close(nvs_handle);
